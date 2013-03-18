@@ -14,5 +14,5 @@
 
 using namespace std;
 
-unsigned long Res(short N, short k);
-void GetNext(int *C, short N, short k );
+unsigned int Res(unsigned int N, unsigned int k);
+void GetNext(int *C, unsigned int N, unsigned int k );

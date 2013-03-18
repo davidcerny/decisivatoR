@@ -1,11 +1,11 @@
 #include "comb.h"
 
-void GetNext(int *C, short N, short k )
+void GetNext(int *C, unsigned int N, unsigned int k )
 {
   int i, j;
   i = k-1;
   
-  while( (C[i] + k - i+1) > N) 
+  while( (C[i] + k - i + 1) > N) 
   {
     /*Search for the next element to increase*/
     i--;
@@ -17,21 +17,24 @@ void GetNext(int *C, short N, short k )
   {
     C[j] = C[j-1] + 1;
   }
+
+  //Pringting C:
+  //for(int j=0; j<k;++j) {cout << C[j] << " ";}
+  //cout << endl;
   
 }
 
-unsigned long Res(short N, short k) 
+unsigned int Res(unsigned int N, unsigned int k) 
 {
-  //cout << N << " " << k;
   /*Calculates the number of possible combinations*/
   int i, j;
   int *A, *B;
   A = new int[k+1];
   B = new int[k+1];
-  for(int ii=0; ii<k+1; ii++)
+  for(int i=0; i<k+1; i++)
   {
-      A[ii] = 0;
-      B[ii] = 0;
+      A[i] = 0;
+      B[i] = 0;
   }
   
   A[0] = 1; A[1] = 1;
@@ -48,9 +51,7 @@ unsigned long Res(short N, short k)
     for(int ii=0; ii<k+1; ii++)
     {
       A[ii] = B[ii];
-      //cout << B[ii] << " ";
     }
-    //cout << endl;
   }
   
   unsigned long cnum = A[k]; 
