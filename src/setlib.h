@@ -14,7 +14,9 @@
 #include <map>
 #include <vector>
 
+
 using namespace std;
 
 bool issubset(string set1[], string set2[], short m, int n);
 vector<int> diff(int set1[], int set2[], short m, int n);
+vector<string> diff2(string set1[], string set2[], short m, int n) ;

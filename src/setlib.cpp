@@ -41,3 +41,20 @@ vector<int> diff(int set1[], int set2[], short m, int n) {
 
 	return diff_array;
 }
+
+vector<string> diff2(string set1[], string set2[], short m, int n) {
+  /*Returns elements that belong to set2 but does not belong to set1*/
+	vector<string> diff_array;
+	std::map< string, int > set1_map;
+	
+	for(int i=0; i<m; i++)
+		set1_map.insert(std::make_pair(set1[i],0));
+
+	//Now look up for each element of set1
+	for(int i=0; i<n; i++) 
+	{
+		if(set1_map.find(set2[i]) == set1_map.end()) {diff_array.push_back(set2[i]);}
+	} 
+
+	return diff_array;
+}
