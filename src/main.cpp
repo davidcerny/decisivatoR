@@ -16,7 +16,7 @@ using namespace Rcpp;
 using namespace std;
 
 RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
-    
+    string res = "";
     short N = as<int>(n); //Number of taxons
     //std::vector<string> X(taxa.size());   
     Rcpp::CharacterVector cx = Rcpp::CharacterVector(taxa);  
@@ -32,13 +32,16 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
     Rcpp::List SS = Rcpp::List(s);   
     int k= SS.size(); //Number of taxon subsets
     string **S = NULL;
+    int *sizes = NULL; //a set of sizes of each of taxon subset
     try {
         S = new string*[k];
+        sizes = new int[k];
     } catch (bad_alloc& ba) {
         cerr << "bad_alloc caught: " << ba.what() << endl;
     }
     for (int i=0; i<k; i++) {  
         Rcpp::CharacterVector SSS = SS[i];
+        sizes[i] = SSS.size();
         S[i] = new string[SSS.size()];
         for (int ii=0; ii<SSS.size(); ii++) {  
           S[i][ii] = SSS[ii];  
@@ -66,7 +69,10 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
     bool decisive = false;
     for(int j = 0; j < k; j++)
     {
-       if(issubset(triplet, S[j], 3, 4) == true) {decisive = true;}
+      if(sizes[j] >= 3) 
+      {
+         if(issubset(triplet, S[j], 3, sizes[j]) == true) {decisive = true;}
+      }
     }
     if(decisive == false) 
     {
@@ -87,19 +93,26 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
       
       for(int j = 0; j < k; j++)
       {
-        if(issubset(triplet, S[j], 3, 4) == true) {decisive = true;}
+        if(sizes[j] >= 3) 
+        {
+          if(issubset(triplet, S[j], 3, sizes[j]) == true) {decisive = true;}
+        }
       }
       if(decisive == false) 
       {
-        cout << "The given set is not decisive." << endl;
-        return(R_NilValue);
+        //cout << "The given set is not decisive." << endl;
+        res = "Computation is done. The given set is not decisive.";
+        return(Rcpp::CharacterVector(res));
       }
     }
 
-    free(C);
-    cout << "Computation is done. The given data set is decisive.\n";
+    res = "Computation is done. The given data set is decisive.";
     
-    return(R_NilValue);
+    free(C);
+    free(sizes);
+    free(S);
+    
+    return(Rcpp::CharacterVector(res));
 }
 
 RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
@@ -171,14 +184,18 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
         bool cq_flag = true;    	
 	      for(int j=0; j<k;++j) //For each subset S[j] of the S
     	  {
-		      if(issubset(quadruple, S[j], 4, sizes[j]) == true) {cq_flag = false; break;}
+		      if(sizes[j] >= 4) 
+          {
+            if(issubset(quadruple, S[j], 4, sizes[j]) == true) {cq_flag = false; break;}
+		      }
+          
           
           if(diff2(quadruple, S[j], 4, sizes[j]).size() < 4) {freq_counter += 1;}
           
     	  }
         
         //If this particular quadruple is not a subset of any of the taxon set S[j], add this quadruple to the set of CQs (Cross-Quadruples)
-	      if(cq_flag == true) {CQ.push_back(i-1); cout << freq_counter << endl;}
+	      if(cq_flag == true) {CQ.push_back(i-1); /*cout << freq_counter << endl;*/}
     	
 	      GetNext( C, N, m ); //Getting next quadruple, with different arrangement of the taxons
 	
@@ -233,7 +250,8 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
 				      
 				      for(int ii=0; ii<k; ++ii) //For all subsets in S
 				      {
-					      if(issubset(quadruple, S[ii], 4, 4) == true) {fixed_taxon_counter += 1;break;}
+					      if(sizes[ii] >= 4) 
+                  if(issubset(quadruple, S[ii], 4, sizes[ii]) == true) {fixed_taxon_counter += 1;break;}
 				      }
 				      
               if(fixed_taxon_counter < 4)
@@ -266,14 +284,14 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
 	
     }
 
-    
+    string res = "";
     if(flag_size == 0) 
     {
-	    cout << "Computation is done. The given data set is decisive.\n";
+	    res = "Computation is done. The given data set is decisive.";
     }
     else
     {
-	    cout << "Computation is done. The given data set is not decisive.\n";
+	    res = "Computation is done. The given data set is not decisive.";
     }
 
     //Debug: resolved cross-quadruples:
@@ -297,5 +315,5 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
     free(sizes);
     free(S);
     
-    return(R_NilValue);
+    return(Rcpp::CharacterVector(res));
 }
