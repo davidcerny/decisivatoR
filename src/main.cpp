@@ -54,7 +54,6 @@ bool GetDecisivenessUnrooted(unsigned int N, string *X, string **S, int *sizes, 
 		      //If the taxon does not belong to the i-th cross-quadruple:
 		      if(cq_map.find(j) == cq_map.end()) 
 		      {
-			      //cout << j << endl;			
 			      int fixed_taxon_counter = 0;			
 			      //Consequently replace all the elements in the given cross-quadruple by that taxon and check if that taxon is a "fixed" taxon
 			      for(int kk=0; kk<4;++kk) 
@@ -69,13 +68,11 @@ bool GetDecisivenessUnrooted(unsigned int N, string *X, string **S, int *sizes, 
 					      {
 						      quadruple[jj] = X[j];
 					      }
-					      //cout << quadroople[jj] << " ";
-    				  } 
+					    } 
 				      
 				      for(int ii=0; ii<k; ++ii) //For all subsets in S
 				      {
-					      //cout << sizes[ii] << endl;
-                if(sizes[ii] >= 4) 
+					      if(sizes[ii] >= 4) 
                 {
                   if(issubset(quadruple, S[ii], 4, sizes[ii]) == true) {fixed_taxon_counter += 1;break;}
                 }
@@ -96,14 +93,12 @@ bool GetDecisivenessUnrooted(unsigned int N, string *X, string **S, int *sizes, 
 				
 			      if(fixed_taxon_counter == 4) 
 			      {
-				      //cout << fixed_taxon_counter << endl;
 				      //Mark quadruple as resolved. Put its id into resolved quadruples:
 				      RCQ.push_back(CQ[i]);
 							flag_size--; 
 				      break;
 			      }
-			    //cout << fixed_taxon_counter << endl;
-		      }
+			    }
 	      }
         
         cq_map.clear();
@@ -122,10 +117,10 @@ bool GetDecisivenessUnrooted(unsigned int N, string *X, string **S, int *sizes, 
 RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
     string res = "";
     short N = as<int>(n); //Number of taxons
-    //std::vector<string> X(taxa.size());   
     Rcpp::CharacterVector cx = Rcpp::CharacterVector(taxa);  
     string *X = new string[N];
-    for (int i=0; i<cx.size(); i++) {  
+    for (int i=0; i<cx.size(); i++) 
+    {  
       X[i] = cx[i];  
     } 
     
@@ -137,12 +132,17 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
     int k= SS.size(); //Number of taxon subsets
     string **S = NULL;
     int *sizes = NULL; //a set of sizes of each of taxon subset
-    try {
+    
+    try 
+    {
         S = new string*[k];
         sizes = new int[k];
-    } catch (bad_alloc& ba) {
+    } 
+    catch (bad_alloc& ba) 
+    {
         cerr << "bad_alloc caught: " << ba.what() << endl;
     }
+    
     for (int i=0; i<k; i++) {  
         Rcpp::CharacterVector SSS = SS[i];
         sizes[i] = SSS.size();
@@ -151,8 +151,7 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
           S[i][ii] = SSS[ii];  
         }
     }  
-    
-    
+        
     //Unrooted tree case
     short m = 3; //We consider triplets.
     
@@ -206,52 +205,69 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
       {
         //cout << "The given set is not decisive." << endl;
         res = "Computation is done. The given set is not decisive.";
-        return(Rcpp::CharacterVector(res));
+        cout << res << endl;
+        break;
       }
     }
 
-    res = "Computation is done. The given data set is decisive.";
+    if(decisive) {res = "Computation is done. The given data set is decisive.";cout << res << endl;}
+    
+    Rcpp::List s_out(k);// = Rcpp::List(S); 
+    for(int i=0; i<k; i++) 
+    {     
+       vector<string> s_i(sizes[i]);
+       for(int j=0; j<sizes[i]; ++j)
+       {
+         s_i[j] = S[i][j];
+       }
+       Rcpp::CharacterVector ss_i(sizes[i]);
+       std::copy( s_i.begin(), s_i.end(), ss_i.begin() ) ;
+       s_out[i] = ss_i;
+    }
     
     free(C);
     free(sizes);
-    free(S);
+    //free(S);
     
-    return(Rcpp::CharacterVector(res));
+    //return(Rcpp::CharacterVector(res));
+    return(Rcpp::wrap(s_out));
 }
 
 RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP fflag) {
-  unsigned int N; //Total number of taxons
-  string *X = NULL;
-  string **S = NULL;
-  int *sizes = NULL; //a set of sizes of each of taxon subset
-  int **Q = NULL;
-  int k = 0; //number of subsets
-  vector<int> RCQ; //Resolved cross-quadruples
-  vector<int> CQ; //This holds cross-quadrooples
-  std::map< int, int > cq_map_freq; //This holds cross-quadruples and their "weights": <Q_id , weight>
+    unsigned int N; //Total number of taxons
+    string *X = NULL;
+    string **S = NULL;
+    int *sizes = NULL; //a set of sizes of each of taxon subset
+    int **Q = NULL;
+    int k = 0; //number of subsets
+    vector<int> RCQ; //Resolved cross-quadruples
+    vector<int> CQ; //This holds cross-quadrooples
+    std::map< int, int > cq_map_freq; //This holds cross-quadruples and their "weights": <Q_id , weight>
       
     /************************ Data receiving **************************/
     
     N = as<unsigned int>(n); //Total Number of taxons
-    Rcpp::CharacterVector cx = Rcpp::CharacterVector(taxa);  
+    Rcpp::CharacterVector cx = Rcpp::CharacterVector(taxa);
     X = new string[N];
-    for (int i=0; i<cx.size(); i++) {  
-      X[i] = cx[i];  
-    } 
+    for (int i=0; i<cx.size(); i++) {
+      X[i] = cx[i];
+    }
     bool fix_flag = as< bool >(fflag);
-    //cout << N << endl;
     
     //Data set
     Rcpp::List SS = Rcpp::List(s);   
     k= SS.size(); //Number of taxon subsets
-    //cout << k << endl;
     
-    try {
+    try
+    {
         S = new string*[k];
         sizes = new int[k];
-    } catch (bad_alloc& ba) {
+    } 
+    catch (bad_alloc& ba) 
+    {
         cerr << "bad_alloc caught: " << ba.what() << endl;
     }
+    
     for (int i=0; i<k; i++) {  
         Rcpp::CharacterVector SSS = SS[i];
         sizes[i] = SSS.size(); 
@@ -259,7 +275,7 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
         for (int ii=0; ii<sizes[i]; ii++) {  
           S[i][ii] = SSS[ii];
         }
-    }  
+    }
     
     /*****************   End of data receiving   ***********************/
     
@@ -277,12 +293,11 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
     string quadruple[m];
     int *C = NULL;
     C = new int[m];
-    //Q[0] = new int[m]; //New first quadruple
+    
     for(int i=0; i<m; i++)
     {
       C[i] = i;
       quadruple[i] = X[C[i]];
-      //Q[0][i] = C[i];
     }
     
     //Here we re-arrange, i.e. create new quadruples and also determine cross-quadruples
@@ -313,7 +328,6 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
 	      if(cq_flag == true) 
         {
           CQ.push_back(i); 
-          //cout << freq_counter << endl;
           cq_map_freq.insert(std::make_pair(i,freq_counter));
         }
     	
@@ -326,16 +340,12 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
         
     }
 	
-    
     //Debug
     //Pringting Qs:
     /*for(int i=0; i<combnum; ++i) {
     	for(int j=0; j<4;++j) {cout << Q[i][j] << " ";}
     	cout << endl;
     }*/
-
-  
-    
 
     //Debug: resolved cross-quadruples:
     //for(int r=0; r<RCQ.size(); ++r)
@@ -357,7 +367,7 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
     string res_str = "";
     
     bool res = GetDecisivenessUnrooted(N, X, S, sizes, Q, k, CQ, RCQ);
-    //cout << CQ.size() << endl;
+    
     if(res == true) 
     {
       res_str = "Computation is done. The given data set is decisive.";
@@ -399,10 +409,8 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
         for(int iii=0; iii<sizes[r_subset]; ++iii)
         {
           S[r_subset][iii] = tmp_str[iii];
-          //cout << iii << endl;
         }
       
-        //cout << "\n";
         //Determine a new cross-quadruples with updated data set:
         CQ.clear();  
         RCQ.clear(); 
@@ -421,7 +429,6 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
             {
               if(issubset(quadruple, S[j], 4, sizes[j]) == true) {cq_flag = false; break;}
 		        }
-          
             //freq_counter += diff2(quadruple, S[j], 4, sizes[j]).size();
           }
         
@@ -455,14 +462,30 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
     }
     cout << res_str << endl;
     
+    Rcpp::List s_out(k);// = Rcpp::List(S); 
+    for(int i=0; i<k; i++) 
+    {     
+       //string *s_i = new string[sizes[i]];
+       vector<string> s_i(sizes[i]);
+       for(int j=0; j<sizes[i]; ++j)
+       {
+         s_i[j] = S[i][j];
+       }
+       Rcpp::CharacterVector ss_i(sizes[i]);
+       std::copy( s_i.begin(), s_i.end(), ss_i.begin() ) ;
+       s_out[i] = ss_i;
+    }
+    
     free(C);
     free(Q);
     free(sizes);
-    free(S);
+    //free(S);
     //free(X);
     
     
-    return(Rcpp::CharacterVector(res_str));
+    //return(Rcpp::CharacterVector(res_str));
+    //Rcpp::List s_out(k);
+    return(Rcpp::wrap(s_out));
 }
 
 
