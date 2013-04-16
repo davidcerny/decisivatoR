@@ -212,7 +212,7 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
 
     if(decisive) {res = "Computation is done. The given data set is decisive.";cout << res << endl;}
     
-    Rcpp::List s_out(k);// = Rcpp::List(S); 
+    Rcpp::List s_out(k+1);// = Rcpp::List(S); 
     for(int i=0; i<k; i++) 
     {     
        vector<string> s_i(sizes[i]);
@@ -224,6 +224,8 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
        std::copy( s_i.begin(), s_i.end(), ss_i.begin() ) ;
        s_out[i] = ss_i;
     }
+    
+    s_out[k] = res;
     
     free(C);
     free(sizes);
@@ -397,8 +399,8 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
           //cout << S[r_subset][mm] << " ";
         }
         //cout << endl;
-      
-        cout << "Iteration " << iteration << endl;
+        cout << "\033[A\033[2K";
+        cout << "Iteration " << iteration << "..." << endl;
         for(int iii=0; iii<4; ++iii)
         {
           //cout << X[Q[iter->second][iii]] << " ";
@@ -462,7 +464,7 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
     }
     cout << res_str << endl;
     
-    Rcpp::List s_out(k);// = Rcpp::List(S); 
+    Rcpp::List s_out(k+1);// = Rcpp::List(S); 
     for(int i=0; i<k; i++) 
     {     
        //string *s_i = new string[sizes[i]];
@@ -476,6 +478,8 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
        s_out[i] = ss_i;
     }
     
+    s_out[k] = res_str;
+    
     free(C);
     free(Q);
     free(sizes);
@@ -483,8 +487,6 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
     //free(X);
     
     
-    //return(Rcpp::CharacterVector(res_str));
-    //Rcpp::List s_out(k);
     return(Rcpp::wrap(s_out));
 }
 

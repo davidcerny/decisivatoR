@@ -19,12 +19,12 @@ isdecisive <- function(filename, unrooted=T, fflag=F) {
   }
   
   #============Return value: fixed or not fixed matrix==============
-  final <- matrix(0,ncol=length(ans),nrow=length(X))
+  final <- matrix(0,ncol=length(ans)-1,nrow=length(X))
   rownames(final) <- c(levels(data[,1]))
   colnames(final) <- colnames(data)[2:length(colnames(data))]
   final<-as.table(final)
-  for(i in seq_len(length(ans))) {
+  for(i in seq_len(length(ans)-1)) {
     for(j in seq_len(length(ans[[i]]))) {final[ ans[[i]][j], colnames(final)[i] ] <- 1}
   }
-  final
+  out <- list(final,ans[[length(ans)]])
 }
