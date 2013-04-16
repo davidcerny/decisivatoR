@@ -3,6 +3,7 @@
 void GetNext(int *C, unsigned int N, unsigned int k )
 {
   int i, j;
+  //i = k-1;
   i = k-1;
   
   while( (C[i] + k - i + 1) > N) 
