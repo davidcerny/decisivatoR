@@ -114,9 +114,14 @@ bool GetDecisivenessUnrooted(unsigned int N, string *X, string **S, int *sizes, 
     return res;
 }
 
-RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
+
+RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP fflag) {
+    vector<string> CT; //This vector structure holds Cross-Triplets
     string res = "";
+    std::map< int, int > ct_map_freq; //This holds cross-triples and their "weights": <T_id , weight>
+    int **T = NULL;
     short N = as<int>(n); //Number of taxons
+    
     Rcpp::CharacterVector cx = Rcpp::CharacterVector(taxa);  
     string *X = new string[N];
     for (int i=0; i<cx.size(); i++) 
@@ -158,13 +163,13 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
     //Number of possible combinations:
     unsigned long combnum = Res(N,m);
     cout << "Number of combinations is: " << combnum << endl;
+    T = new int*[combnum]; //Array of triplets. This array keeps all quadruples created from X
     int *C = NULL;
     C = new int[m];
     for(int i=0; i<m; i++)
     {
       C[i] = i;
       triplet[i] = X[C[i]];
-      
     }
     
     //Decisiveness. Main loop.
@@ -183,36 +188,123 @@ RcppExport SEXP IsDecisiveRooted(SEXP taxa, SEXP s, SEXP n, SEXP _k) {
       return(R_NilValue);
     }
     
-    for(int ii=0; ii < combnum-1; ++ii)
+    for(int ii=0; ii < combnum; ++ii)
     {
+      int freq_counter = 0;
       decisive = false;
-      GetNext( C, N, m );
+      if (ii>0) GetNext( C, N, m );
       
-      //Printing result
-      for(int jj=0; jj < m; jj++)
-      {
-	      triplet[jj] = X[C[jj]];
-      }
+      T[ii] = new int[m]; //New triple
+      for(int j=0;j<m;++j) { T[ii][j] = C[j]; } //Fill this new quadruple with taxons ids
+      
+      
       
       for(int j = 0; j < k; j++)
       {
         if(sizes[j] >= 3) 
         {
           if(issubset(triplet, S[j], 3, sizes[j]) == true) {decisive = true;}
+          
+          freq_counter += diff2(triplet, S[j], 3, sizes[j]).size();
         }
       }
       if(decisive == false) 
       {
-        //cout << "The given set is not decisive." << endl;
         res = "Computation is done. The given set is not decisive.";
-        cout << res << endl;
-        break;
+        ct_map_freq.insert(std::make_pair(ii,freq_counter));
+        //break;
+      }
+      
+      //Create a triplet
+      for(int jj=0; jj < m; jj++)
+      {
+        triplet[jj] = X[C[jj]];
       }
     }
 
-    if(decisive) {res = "Computation is done. The given data set is decisive.";cout << res << endl;}
+    if(decisive && (ct_map_freq.size() == 0)) 
+    {
+      res = "Computation is done. The given data set is decisive.";
+    }
+    else
+    {
+      if(as<bool>(fflag))
+      {
+        cout << "The given data set is not decisive. Trying to fix it..." << endl;
     
-    Rcpp::List s_out(k+1);// = Rcpp::List(S); 
+        //Fixing the data set
+        //Sorting cq_map_freq by value:
+        std::map<int, int> dst = flip_map(ct_map_freq);
+        std::map<int, int>::reverse_iterator iter;
+        int iteration = 1;
+        for (iter = dst.rbegin(); iter != dst.rend(); ++iter) 
+        {
+          //Get the random number from 1..k:
+          int r_subset = rand() % k;
+          sizes[r_subset] = sizes[r_subset] + 4; //sizes[i] = SSS.size();
+          string *tmp_str = new string[sizes[r_subset]];
+          for(unsigned int mm=0; mm<sizes[r_subset]-4; ++mm)
+          {
+            tmp_str[mm] = S[r_subset][mm];
+          }
+          cout << "\033[A\033[2K";
+          cout << "Iteration " << iteration << "..." << endl;
+          for(int iii=0; iii<4; ++iii)
+          {
+            tmp_str[sizes[r_subset]-4+iii] = X[T[iter->second][iii]];
+          }
+          S[r_subset] = new string[sizes[r_subset]];
+          for(int iii=0; iii<sizes[r_subset]; ++iii)
+          {
+            S[r_subset][iii] = tmp_str[iii];
+          }
+      
+          //Determine a new cross-quadruples with updated data set:
+          for(unsigned int i=0; i<combnum; ++i)
+          {
+            decisive = false;
+            //Printing result
+            for(int jj=0; jj < m; jj++)
+            {
+              triplet[jj] = X[T[i][jj]];
+            }
+            
+            for(int j = 0; j < k; j++)
+            {
+              if(sizes[j] >= 3) 
+              {
+                if(issubset(triplet, S[j], 3, sizes[j]) == true) {decisive = true;}
+              }
+            }
+            if(decisive == false) 
+            {
+              res = "Computation is done. The given set is not decisive.";
+              break;
+            }
+    	    }
+            
+          if(decisive == true) 
+          {
+            res = "Computation is done. The given data set is decisive.";
+            break;
+          }
+          else
+          {
+            res = "Computation is done. The given data set is not decisive.";
+          }
+          iteration+=1;
+        }
+      }
+      else
+      {
+        res = "Computation is done. The given data set is not decisive.";
+      }
+      
+    }
+    
+    cout << res << endl;
+    
+    Rcpp::List s_out(k+1);
     for(int i=0; i<k; i++) 
     {     
        vector<string> s_i(sizes[i]);
@@ -388,25 +480,18 @@ RcppExport SEXP IsDecisiveUnrooted(SEXP taxa, SEXP s, SEXP n, SEXP _k, SEXP ffla
       {
         //Get the random number from 1..k:
         int r_subset = rand() % k;
-        //cout << r_subset << endl;
-        //cout << sizes[r_subset] << endl;
         sizes[r_subset] = sizes[r_subset] + 4; //sizes[i] = SSS.size();
-        //cout << sizes[r_subset] << endl;
         string *tmp_str = new string[sizes[r_subset]];
         for(unsigned int mm=0; mm<sizes[r_subset]-4; ++mm)
         {
           tmp_str[mm] = S[r_subset][mm];
-          //cout << S[r_subset][mm] << " ";
         }
-        //cout << endl;
         cout << "\033[A\033[2K";
         cout << "Iteration " << iteration << "..." << endl;
         for(int iii=0; iii<4; ++iii)
         {
-          //cout << X[Q[iter->second][iii]] << " ";
           tmp_str[sizes[r_subset]-4+iii] = X[Q[iter->second][iii]];
         }
-        //cout << endl << sizes[r_subset] << endl;
         S[r_subset] = new string[sizes[r_subset]];
         for(int iii=0; iii<sizes[r_subset]; ++iii)
         {

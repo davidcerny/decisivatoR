@@ -12,7 +12,7 @@ isdecisive <- function(filename, unrooted=T, fflag=F) {
   #============Functions to compute decisiveness and fix the data set==================
   if(unrooted==F) {
     print("Rooted tree choice...")
-    ans <- .Call("IsDecisiveRooted",X, S, length(X),length(S))
+    ans <- .Call("IsDecisiveRooted",X, S, length(X),length(S),fflag)
   } else {
     print("Unrooted tree choice...")
     ans <- .Call("IsDecisiveUnrooted",X, S, length(X),length(S),fflag)
