@@ -21,9 +21,6 @@
 \author{
 Ilya Y. Zhbannikov <i.zhbannikov@gmail.com>, James A. Foster <foster@uidaho.edu>
 }
-\maintainer{
-Ilya Y. Zhbannikov <i.zhbannikov@gmail.com>
-}
 \references{
 
 Mike Steel, Michael J Sanderson, \emph{Characterizing phylogenetically decisive taxon coverage},
