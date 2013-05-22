@@ -19,8 +19,10 @@
 
 }
 \author{
-Ilya Y. Zhbannikov
-Maintainer: Ilya Y. Zhbannikov <i.zhbannikov@gmail.com>
+Ilya Y. Zhbannikov <i.zhbannikov@gmail.com>, James A. Foster <foster@uidaho.edu>
+}
+\maintainer{
+Ilya Y. Zhbannikov <i.zhbannikov@gmail.com>
 }
 \references{
 
