@@ -51,13 +51,20 @@ isdecisive <- function(filename, unrooted=T, fflag=F,format="csv") {
   for(i in seq_len(length(ans)-1)) {
     for(j in seq_len(length(ans[[i]]))) {final[ ans[[i]][j], colnames(final)[i] ] <- 1}
   }
-  #Add a '*':
+  #Add a '*' and compute the list of suggested characters in form of {taxon, character}:
+  suggested <- c()
   for(i in 1:dim(final)[1]) {
   	for(j in 1:dim(final)[2]) {
-  		if(final[i,j] != data[i,j+1]) {final[i,j] = '*'}	
+  		if(final[i,j] != data[i,j+1]) {
+        final[i,j] = '*'
+        pair <- c(rownames(final)[i],colnames(final)[j])
+        suggested <-rbind(suggested, pair)
+  		}
   	}
   }
-  out <- list(final,ans[[length(ans)]])
+  colnames(suggested) <- c("T","C")
+  rownames(suggested) <- seq_len(dim(suggested)[1])
+  out <- list(final,ans[[length(ans)]],suggested)
 }
 
 read_nexus <- function(filename) {
@@ -96,3 +103,5 @@ read_nexus <- function(filename) {
   
   out <- data_matrix
 }
+
+#==============Other functions==================
