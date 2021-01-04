@@ -6,6 +6,5 @@ Date: 2013-03-15
 Author: Ilya Zhbannikov <i.zhbannikov@gmail.com> 
 Maintainer: Ilya Zhbannikov <i.zhbannikov@gmail.com> 
 Description: A package that determines is the given dataset is decisive or not for both rooted and unrooted trees.
-License: GPL (>=2) 
-Depends: R (>=2.15) 
+License: GPL (>= 2) 
 Collate: decisivator.R
